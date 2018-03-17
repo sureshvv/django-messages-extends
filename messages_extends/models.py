@@ -24,7 +24,7 @@ class Message(models.Model):
         (messages_extends.ERROR_PERSISTENT, 'PERSISTENT ERROR'),
         )
     level = models.IntegerField(choices=LEVEL_CHOICES)
-    extra_tags = models.CharField(max_length=128)
+    extra_tags = models.CharField(max_length=128, db_index=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     read = models.BooleanField(default=False)
@@ -71,4 +71,11 @@ class Message(models.Model):
             return u' '.join([label_tag, read_tag])
         return read_tag
 
+    def _get_reply(self):
+        rep = Message.objects.filter(extra_tags='Reply:%d' % self.id).first()
+        if not rep:
+            return ''
+        return rep.message
+
     tags = property(_get_tags)
+    reply = property(_get_reply)
